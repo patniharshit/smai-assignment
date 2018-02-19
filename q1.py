@@ -4,20 +4,21 @@ import pandas as pd
 import ipdb
 
 def split_data(data, folds):
-	splits = []	
+	splits = []
 	for i in range(folds):
 		splits.append(data[i::folds])
 	return splits
 
 def vanilla_cross_validation(splitted_data):
-	for i in len(splitted_data):
+	accuracies = []
+	for i in range(len(splitted_data)):
 		test_data = splitted_data[i]
-		
+
 		num_train_split = 0
-		for num_train_split in len(splitted_data):
+		for num_train_split in range(len(splitted_data)):
 			if num_train_split != i:
 				training_data = splitted_data[num_train_split]
-		
+
 		j = num_train_split + 1
 		while j < len(splitted_data):
 			if j != i:
@@ -28,14 +29,29 @@ def vanilla_cross_validation(splitted_data):
 		train_y[train_y == 2] = -1
 		train_y[train_y == 4] = 1
 		train_x = training_data.iloc[:,:training_data.shape[1]-1].values
-		
+
 		test_y = test_data.iloc[:,test_data.shape[1]-1].values
 		test_y[test_y == 2] = -1
 		test_y[test_y == 4] = 1
-		test_x = test_data.iloc[:,:test__data.shape[1]-1].values
-		
-		classifier = vanilila_perceptron(train_x, train_y)
-		# how to calculate error in cross validation?
+		test_x = test_data.iloc[:,:test_data.shape[1]-1].values
+
+		train_x = np.array(train_x, dtype='int64')
+		train_y = np.array(train_y, dtype='int64')
+		test_x = np.array(test_x, dtype='int64')
+		test_y = np.array(test_y, dtype='int64')
+
+		classifier = vanilla_perceptron(train_x, train_y)
+
+		classified = 0
+		for tx, ty in zip(test_x, test_y):
+			if np.sign(ty) == np.sign(np.dot(tx, classifier[0]) + classifier[1]):
+				classified += 1
+
+		#print classified / float(test_y.shape[0])
+		accuracies.append(classified/float(test_y.shape[0]))
+
+	return sum(accuracies)/len(accuracies)
+
 
 def voted_cross_validation(splitted_data):
 	pass
@@ -45,7 +61,7 @@ def vanilla_perceptron(X, Y):
 	Y = np.array(Y, dtype='int64')
 
 	num_samples = X.shape[0];
-	W = np.zeros((1,X.shape[1]))
+	W = np.zeros(X.shape[1])
 	B = 0
 
 	for i in range(epochs):
@@ -61,11 +77,11 @@ def voted_perceptron(X, Y):
 	Y = np.array(Y, dtype='int64')
 
 	num_samples = X.shape[0];
-	W = np.zeros((1,X.shape[1]))
+	W = np.zeros(X.shape[1])
 	B = 0
-	
+
 	output = []
-	
+
 	C = 1
 	for i in range(epochs):
 		for j in range(num_samples):
@@ -82,7 +98,7 @@ def voted_perceptron(X, Y):
 				C = C + 1
 	# number of outputs == num epochs?
 	return output
-				
+
 
 epochs = input("epochs: ")
 dataset_name = "breast-cancer-wisconsin.data"
@@ -94,6 +110,5 @@ Y[Y == 2] = -1
 Y[Y == 4] = 1
 X = data.iloc[:,:data.shape[1]-1].values
 
-print vanilla_perceptron(X, Y)
-voted_output = voted_perceptron(X, Y)
-ipdb.set_trace()
+splits = split_data(data, 10)
+print vanilla_cross_validation(splits)

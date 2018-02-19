@@ -70,7 +70,10 @@ def voted_perceptron(X, Y):
 	for i in range(epochs):
 		for j in range(num_samples):
 			Y_cap = 0
-			if (Y[j] * (np.dot(W, X[j,:]) + B)) <= 0:
+			for k in range(len(output)):
+				Y_cap += output[2]*np.sign(np.sign(output[0],X[j,:])+output[1])
+			Y_cap = np.sign(Y_cap)
+			if (Y[j] * Y_cap) <= 0:
 				output.append((W, B, C))
 				W += Y[j] * X[j,:]
 				B += Y[j]

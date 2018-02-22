@@ -2,7 +2,7 @@ import numpy as np
 from os import listdir
 import os.path
 from nltk.stem import PorterStemmer
-import ipdb;
+import math
 
 ps = PorterStemmer()
 
@@ -10,7 +10,7 @@ fp_stopwords = open("stopwords.txt",'r')
 stopwords = (fp_stopwords.read()).split('\n')
 
 word_dict = {}
-doc_count = 1
+doc_count = 0
 ignorechars = {'''."/?[]{}(),:'!''' : None}
 temp = 0
 for direc in listdir('./q2data/train'):
@@ -43,11 +43,9 @@ for i, k in enumerate(dictkeys):
 
 
 WordsPerDoc = np.sum(A, axis=0)
-DocsPerWord = np.sum(np.asarray(A > 0, 'i'), axis=1)
+DocsPerWord = np.sum(np.asarray(A > 0), axis=1)
 rows, cols = A.shape
+import ipdb; ipdb.set_trace()
 for i in range(rows):
     for j in range(cols):
-        A[i,j] = (A[i,j] / WordsPerDoc[j]) * np.log(float(cols) / DocsPerWord[i])
-
-
-ipdb.set_trace()
+            A[i,j] = (A[i,j] / WordsPerDoc[j]) * math.log(1 + (float(cols) / DocsPerWord[i]))

@@ -12,18 +12,16 @@ stopwords = (fp_stopwords.read()).split('\n')
 word_dict = {}
 doc_count = 0
 ignorechars = {'''."/?[]{}(),:'!''' : None}
-temp = 0
+
 for direc in listdir('./q2data/train'):
     locs = './q2data/train/'+direc+'/'
-    for filename in listdir(locs):
+    files = listdir(locs)
+    for filename in files[:(80*len(files))/100]:
         fp_data = open(locs+filename,'r')
-        try:
-            tokens = ((fp_data.read()).decode("utf8")).split(' ')
-        except:
-            temp += 1
-            continue
+        tokens = ((fp_data.read()).decode("utf8")).split(' ')
         for w in tokens:
-            w = ps.stem((w.lower()).translate(ignorechars))
+            w = (w.lower()).translate(ignorechars)
+            w = ps.stem(w)
             if w in stopwords:
                 continue
             if w in word_dict:
@@ -32,10 +30,10 @@ for direc in listdir('./q2data/train'):
                 word_dict[w] = [doc_count]
         doc_count += 1
 
-
 dictkeys = word_dict.keys()
 #dictkeys.sort()
 A = np.zeros([len(dictkeys), doc_count])
+
 for i, k in enumerate(dictkeys):
     for d in word_dict[k]:
             A[i,d] += 1
@@ -45,7 +43,7 @@ for i, k in enumerate(dictkeys):
 WordsPerDoc = np.sum(A, axis=0)
 DocsPerWord = np.sum(np.asarray(A > 0), axis=1)
 rows, cols = A.shape
-import ipdb; ipdb.set_trace()
+
 for i in range(rows):
     for j in range(cols):
             A[i,j] = (A[i,j] / WordsPerDoc[j]) * math.log(1 + (float(cols) / DocsPerWord[i]))

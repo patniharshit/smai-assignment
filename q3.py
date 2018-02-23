@@ -33,6 +33,8 @@ for direc in listdir('./q2data/train'):
 
 dictkeys = word_dict.keys()
 #dictkeys.sort()
+print "dict formed"
+
 A = np.zeros([len(dictkeys), doc_count])
 
 for i, k in enumerate(dictkeys):
@@ -44,9 +46,16 @@ WordsPerDoc = np.sum(A, axis=0)
 DocsPerWord = np.sum(np.asarray(A > 0), axis=1)
 rows, cols = A.shape
 
+print "computing tf-idf"
 for i in range(rows):
     for j in range(cols):
             A[i,j] = (A[i,j] / WordsPerDoc[j]) * math.log(1 + (float(cols) / DocsPerWord[i]))
 
-print A.shape
+print "tfidf done"
+
+A = A.transpose()
+
+#w, v = np.linalg.eig(np.matmul(A, A.transpose()))
+u, s, vh = np.linalg.svd(A, full_matrices=False)
+print u, s, vh
 #import ipdb; ipdb.set_trace()

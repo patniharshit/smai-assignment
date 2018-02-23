@@ -1,17 +1,15 @@
 import numpy as np
 from os import listdir
 import os.path
-#from nltk.stem import PorterStemmer
 import math
 from scipy.linalg import svd
 from scipy.spatial.distance import cosine
-
-#ps = PorterStemmer()
 
 fp_stopwords = open("stopwords.txt",'r')
 stopwords = (fp_stopwords.read()).split('\n')
 
 word_dict = {}
+doc_to_address = {}
 doc_count = 0
 ignorechars = '''."/?\[]{}(),:'!'''
 
@@ -23,13 +21,13 @@ for direc in listdir('./q2data/train'):
         tokens = ((fp_data.read())).split()
         for w in tokens:
             w = w.lower().translate(None, ignorechars)
-            #w = ps.stem(w)
             if w in stopwords:
                 continue
             if w in word_dict:
                 word_dict[w].append(doc_count)
             else:
                 word_dict[w] = [doc_count]
+        doc_to_address[doc_count] = locs+filename
         doc_count += 1
 
 dictkeys = word_dict.keys()
@@ -40,7 +38,6 @@ A = np.zeros([len(dictkeys), doc_count])
 for i, k in enumerate(dictkeys):
     for d in word_dict[k]:
             A[i,d] += 1
-#files = [f for f in listdir(mypath) if isfile(join(mypath, f))]
 
 WordsPerDoc = np.sum(A, axis=0)
 DocsPerWord = np.sum(np.asarray(A > 0), axis=1)
@@ -53,17 +50,17 @@ A = A.transpose()
 #w, v = np.linalg.eig(np.matmul(A, A.transpose()))
 umat, smat, vh = np.linalg.svd(A, full_matrices=False)
 
-discard = 100
+discard = 2
 
 smat = smat[:-discard]
 umat = umat[:,:-discard]
 vh = vh[:-discard,:]
 
-locs = './q2data/train/1/'
+locs = './q2data/train/0/'
 files = listdir(locs)
-for filename in files[(80*len(files))/100+1:(80*len(files))/100+2]:
-    print filename
-    fp_data = open(locs+filename,'r')
+for filename in range(1):
+    print files[1]
+    fp_data = open(locs+files[1],'r')
     tokens = ((fp_data.read())).split()
     doc_vec = np.zeros(len(dictkeys))
 
@@ -86,4 +83,5 @@ for filename in files[(80*len(files))/100+1:(80*len(files))/100+2]:
     for i, uvec in enumerate(umat):
         similarity.append((1 - cosine(uvec, reduced_vec), i))
 
-    print sorted(similarity)[-10:]
+    for simi, doc in sorted(similarity)[-10:]:
+        print str(simi) + " " + doc_to_address[doc]
